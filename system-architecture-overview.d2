@@ -1,0 +1,1192 @@
+# SCP On-Premises Kubernetes Infrastructure
+# System Architecture Overview
+# Version: 1.0
+# Compliance: SOC 2, HIPAA, NIST 800-53, HiTrust
+
+# ============================================================================
+# TITLE AND HEADER
+# ============================================================================
+
+title: |md
+  # SCP On-Premises AI Infrastructure
+  ## Kubernetes Cluster Architecture Overview
+  **Compliance:** SOC 2 Type II | HIPAA | NIST 800-53 | HiTrust i1
+  **Classification:** Confidential
+| {
+  near: top-center
+  shape: text
+  style: {
+    font-size: 24
+    bold: true
+  }
+}
+
+# ============================================================================
+# EXTERNAL ZONE - INTERNET & PUBLIC ACCESS
+# ============================================================================
+
+external: "External Zone (Untrusted)" {
+  style: {
+    fill: "#ffebee"
+    stroke: "#c62828"
+    stroke-width: 3
+    border-radius: 10
+  }
+
+  internet: "Internet" {
+    icon: https://icons.terrastruct.com/infra/019-cloud.svg
+    shape: image
+  }
+
+  external_users: "External Users" {
+    style: {
+      fill: "#ffcdd2"
+    }
+    
+    employees: "Employees\n(SAML/Entra ID Auth)" {
+      icon: https://icons.terrastruct.com/essentials/150-people.svg
+      shape: image
+    }
+    
+    api_consumers: "API Consumers\n(IP Whitelisted)" {
+      icon: https://icons.terrastruct.com/tech/browsers.svg
+      shape: image
+    }
+  }
+
+  threat_actors: "Threat Landscape" {
+    style: {
+      fill: "#ef9a9a"
+      stroke: "#b71c1c"
+      stroke-dash: 5
+    }
+    
+    ddos: "DDoS Attacks"
+    intrusion: "Intrusion Attempts"
+    malware: "Malware/Ransomware"
+  }
+}
+
+# ============================================================================
+# ISP & STATIC IP ZONE
+# ============================================================================
+
+isp_zone: "ISP Boundary" {
+  style: {
+    fill: "#fff3e0"
+    stroke: "#e65100"
+    stroke-width: 2
+    border-radius: 8
+  }
+
+  att_fiber: "AT&T Fiber\n10/10 Gbps Symmetric" {
+    style: {
+      fill: "#ffe0b2"
+      font-size: 14
+    }
+  }
+
+  static_ips: "Static IP Pool\n8x Public IPv4 Addresses" {
+    style: {
+      fill: "#ffcc80"
+      font-size: 14
+    }
+    
+    ip_allocation: |md
+      **IP Allocation:**
+      - 1x VPN Gateway
+      - 1x Ingress (Traefik)
+      - 1x Management
+      - 5x Reserved/Future
+    |
+  }
+}
+
+# ============================================================================
+# PERIMETER SECURITY - DMZ
+# ============================================================================
+
+dmz: "DMZ / Perimeter Security Zone" {
+  style: {
+    fill: "#fce4ec"
+    stroke: "#ad1457"
+    stroke-width: 3
+    border-radius: 10
+  }
+
+  # UniFi Security Gateway
+  udm_pro: "UniFi Dream Machine Pro" {
+    style: {
+      fill: "#f8bbd9"
+      stroke: "#880e4f"
+      stroke-width: 2
+      font-size: 16
+      bold: true
+    }
+
+    firewall: "Stateful Firewall" {
+      style.fill: "#f48fb1"
+    }
+    
+    ids_ips: "IDS/IPS\n(Intrusion Detection)" {
+      style.fill: "#f48fb1"
+    }
+    
+    threat_mgmt: "Threat Management\n& Geo-IP Blocking" {
+      style.fill: "#f48fb1"
+    }
+    
+    dpi: "Deep Packet\nInspection" {
+      style.fill: "#f48fb1"
+    }
+  }
+
+  # VPN Gateway
+  vpn_gateway: "VPN Gateway" {
+    style: {
+      fill: "#e1bee7"
+      stroke: "#6a1b9a"
+      stroke-width: 2
+    }
+
+    openvpn: "OpenVPN Server" {
+      style.fill: "#ce93d8"
+      
+      features: |md
+        **Security Features:**
+        - SAML/SSO (Entra ID)
+        - MFA Required
+        - Certificate Auth
+        - TLS 1.3 Encryption
+        - Perfect Forward Secrecy
+      |
+    }
+
+    wireguard: "WireGuard\n(Site-to-Site Backup)" {
+      style.fill: "#ce93d8"
+    }
+  }
+
+  # WAF
+  waf: "Web Application Firewall" {
+    style: {
+      fill: "#b39ddb"
+      stroke: "#4527a0"
+    }
+    
+    modsecurity: "ModSecurity\nOWASP CRS 3.x"
+    rate_limiting: "Rate Limiting\n& Throttling"
+    ip_whitelist: "IP Whitelisting\n(Geo-Restricted)"
+  }
+}
+
+# ============================================================================
+# MANAGEMENT VLAN (VLAN 10)
+# ============================================================================
+
+mgmt_vlan: "Management VLAN (VLAN 10) - 10.10.10.0/24" {
+  style: {
+    fill: "#e8eaf6"
+    stroke: "#283593"
+    stroke-width: 3
+    border-radius: 10
+  }
+
+  # Jump Machine / Bastion
+  jump_machine: "Jump Machine (Bastion Host)" {
+    style: {
+      fill: "#c5cae9"
+      stroke: "#1a237e"
+      stroke-width: 2
+    }
+
+    specs: |md
+      **Dell OptiPlex 7070**
+      - Intel Core i5-8500T
+      - 32GB RAM
+      - Windows 11 Enterprise
+      - Intune Managed
+      - Entra ID Joined
+    |
+
+    access_controls: "Access Controls" {
+      style.fill: "#9fa8da"
+      
+      yubikey: "YubiKey Auth\n(Hardware MFA)"
+      entra: "Entra ID\nConditional Access"
+      rbac: "Role-Based\nAccess Control"
+    }
+
+    tools: "Management Tools" {
+      style.fill: "#7986cb"
+      
+      kubectl: "kubectl"
+      helm_cli: "Helm CLI"
+      terraform: "Terraform"
+      ansible: "Ansible"
+    }
+  }
+
+  # IP KVMs
+  kvm_access: "Out-of-Band Management" {
+    style: {
+      fill: "#d1c4e9"
+      stroke: "#512da8"
+    }
+
+    kvm1: "Raritan DKX4-101\nKVM #1" {
+      style.fill: "#b39ddb"
+    }
+    
+    kvm2: "Raritan DKX4-101\nKVM #2" {
+      style.fill: "#b39ddb"
+    }
+
+    ipmi: "IPMI/BMC Access\n(Emergency Only)"
+  }
+
+  # Monitoring Access
+  monitoring_access: "Monitoring & Logging" {
+    style: {
+      fill: "#bbdefb"
+      stroke: "#1565c0"
+    }
+
+    grafana_internal: "Grafana\n(Internal Dashboard)"
+    prometheus_ui: "Prometheus UI"
+    alertmanager: "Alertmanager"
+  }
+}
+
+# ============================================================================
+# CLUSTER VLAN (VLAN 20) - KUBERNETES
+# ============================================================================
+
+cluster_vlan: "Cluster VLAN (VLAN 20) - 10.10.20.0/24" {
+  style: {
+    fill: "#e3f2fd"
+    stroke: "#1565c0"
+    stroke-width: 3
+    border-radius: 10
+  }
+
+  # Network Backbone
+  network_backbone: "Network Infrastructure" {
+    style: {
+      fill: "#90caf9"
+      stroke: "#0d47a1"
+    }
+
+    switch: "UniFi 10G\nAggregation Switch" {
+      style: {
+        fill: "#64b5f6"
+        font-size: 14
+        bold: true
+      }
+    }
+
+    network_features: |md
+      **Network Features:**
+      - 10 Gbps Server Links
+      - Link Aggregation (LACP)
+      - VLAN Trunking
+      - Jumbo Frames (9000 MTU)
+      - Flow Control
+    |
+  }
+
+  # ============================================
+  # CONTROL PLANE NODE
+  # ============================================
+  
+  control_plane: "Control Plane (Dedicated)" {
+    style: {
+      fill: "#bbdefb"
+      stroke: "#0d47a1"
+      stroke-width: 3
+    }
+
+    sol: "SOL - Control Plane Node" {
+      style: {
+        fill: "#64b5f6"
+        stroke: "#0d47a1"
+        stroke-width: 2
+        font-size: 18
+        bold: true
+      }
+
+      sol_specs: |md
+        **Hardware Specifications:**
+        - AMD Ryzen 9 5950X (16-core/32-thread)
+        - 128GB DDR4 RAM
+        - 4x 2TB WD Black NVMe (8TB Total)
+        - ASUS ROG Strix X570-E
+        - 10 Gbps NIC
+      |
+
+      # RKE2 Control Plane Components
+      rke2_control: "RKE2 Control Plane" {
+        style: {
+          fill: "#42a5f5"
+          stroke: "#1565c0"
+        }
+
+        kube_apiserver: "kube-apiserver\n(FIPS 140-2)" {
+          style.fill: "#2196f3"
+        }
+        
+        etcd: "etcd Cluster\n(Encrypted at Rest)" {
+          style.fill: "#2196f3"
+        }
+        
+        kube_scheduler: "kube-scheduler" {
+          style.fill: "#2196f3"
+        }
+        
+        kube_controller: "kube-controller-manager" {
+          style.fill: "#2196f3"
+        }
+        
+        cloud_controller: "cloud-controller-manager" {
+          style.fill: "#2196f3"
+        }
+      }
+
+      # Platform Services on Control Plane
+      platform_services: "Platform Services" {
+        style: {
+          fill: "#4fc3f7"
+          stroke: "#0288d1"
+        }
+
+        rancher: "Rancher Server\n(Cluster Management)" {
+          style.fill: "#29b6f6"
+        }
+        
+        argocd: "ArgoCD\n(GitOps CD)" {
+          style.fill: "#29b6f6"
+        }
+        
+        vault: "External Secrets\nOperator" {
+          style.fill: "#29b6f6"
+        }
+        
+        cert_manager: "cert-manager\n(TLS Automation)" {
+          style.fill: "#29b6f6"
+        }
+      }
+    }
+  }
+
+  # ============================================
+  # GPU WORKER NODES
+  # ============================================
+
+  worker_nodes: "Worker Nodes (GPU-Enabled)" {
+    style: {
+      fill: "#c8e6c9"
+      stroke: "#2e7d32"
+      stroke-width: 3
+    }
+
+    # LUNA - Primary GPU Node
+    luna: "LUNA - GPU Worker Node #1" {
+      style: {
+        fill: "#81c784"
+        stroke: "#1b5e20"
+        stroke-width: 2
+        font-size: 16
+        bold: true
+      }
+
+      luna_specs: |md
+        **Hardware Specifications:**
+        - AMD Threadripper PRO 5975WX
+        - 256GB RDIMM DDR4 3200MHz
+        - 3x NVIDIA RTX A4500 (20GB each)
+        - 2x GPUs NVLink Connected
+        - 1TB WD Black NVMe
+        - ASUS Pro WS WRX80E-SAGE SE
+        - 10 Gbps NIC
+      |
+
+      luna_gpu: "GPU Resources" {
+        style.fill: "#66bb6a"
+        
+        gpu1: "A4500 #1\n20GB VRAM"
+        gpu2: "A4500 #2\n20GB VRAM\n(NVLink)"
+        gpu3: "A4500 #3\n20GB VRAM"
+        
+        gpu1 <-> gpu2: "NVLink\n50 GB/s"
+      }
+
+      luna_workloads: "Assigned Workloads" {
+        style.fill: "#a5d6a7"
+        
+        vllm_llama: "vLLM - Llama 3B\n(16GB VRAM)"
+        vllm_whisper: "vLLM - Whisper\n(STT Model)"
+        vllm_tts: "vLLM - Kokoro TTS"
+      }
+    }
+
+    # PLUTO - Secondary GPU Node
+    pluto: "PLUTO - GPU Worker Node #2" {
+      style: {
+        fill: "#81c784"
+        stroke: "#1b5e20"
+        stroke-width: 2
+        font-size: 16
+        bold: true
+      }
+
+      pluto_specs: |md
+        **Hardware Specifications:**
+        - AMD Threadripper PRO 5975WX
+        - 256GB RDIMM DDR4 3200MHz
+        - 2x NVIDIA RTX A4500 (20GB each)
+        - 1TB WD Black NVMe
+        - 10 Gbps NIC
+      |
+
+      pluto_gpu: "GPU Resources" {
+        style.fill: "#66bb6a"
+        
+        gpu4: "A4500 #4\n20GB VRAM"
+        gpu5: "A4500 #5\n20GB VRAM"
+      }
+
+      pluto_workloads: "Assigned Workloads" {
+        style.fill: "#a5d6a7"
+        
+        vllm_embed: "vLLM - Embedding\nModel"
+        qdrant: "Qdrant\n(Vector DB - GPU Accel)"
+      }
+    }
+
+    # Future GPU Expansion
+    future_gpus: "Future GPU Expansion" {
+      style: {
+        fill: "#e8f5e9"
+        stroke: "#4caf50"
+        stroke-dash: 5
+      }
+
+      a30: "NVIDIA A30\n(24GB + MIG)" {
+        style.fill: "#c8e6c9"
+      }
+      
+      a10: "NVIDIA A10\n(24GB + MIG)" {
+        style.fill: "#c8e6c9"
+      }
+
+      mig_note: |md
+        **MIG Partitioning:**
+        - 1g.6gb slices for small models
+        - 2g.12gb for medium models
+        - 4g.24gb for large inference
+      |
+    }
+  }
+
+  # ============================================
+  # APPLICATION WORKLOADS
+  # ============================================
+
+  workloads: "Application Workloads" {
+    style: {
+      fill: "#fff9c4"
+      stroke: "#f9a825"
+      stroke-width: 2
+    }
+
+    # AI/ML Services
+    ai_services: "AI/ML Services (GPU)" {
+      style: {
+        fill: "#fff59d"
+        stroke: "#fbc02d"
+      }
+
+      vllm_stack: "vLLM Inference Stack" {
+        style.fill: "#ffee58"
+        
+        llm_instance: "LLM Instance\n(Llama 3B)"
+        stt_instance: "STT Instance\n(Whisper)"
+        tts_instance: "TTS Instance\n(Kokoro)"
+        embed_instance: "Embedding\nInstance"
+      }
+
+      langfuse: "Langfuse\n(LLM Observability)"
+    }
+
+    # Voice/Telephony Stack
+    voice_stack: "Voice & Telephony (CPU)" {
+      style: {
+        fill: "#ffe0b2"
+        stroke: "#fb8c00"
+      }
+
+      livekit: "LiveKit\n(WebRTC Server)"
+      livekit_sip: "LiveKit SIP\n(SIP Gateway)"
+      asterisk: "Asterisk\n(PBX)"
+      pjsip: "PJSIP\n(SIP Stack)"
+      voice_agent: "Voice Agent\nOrchestrator"
+    }
+
+    # Core Application Services
+    app_services: "Application Services (CPU)" {
+      style: {
+        fill: "#e1bee7"
+        stroke: "#8e24aa"
+      }
+
+      librechat: "LibreChat\n(AI Chat UI)" {
+        style.fill: "#ce93d8"
+      }
+      
+      n8n: "n8n\n(Workflow Automation)" {
+        style.fill: "#ce93d8"
+      }
+
+      python_apis: "Python API\nContainers" {
+        style.fill: "#ce93d8"
+      }
+    }
+
+    # Data Layer
+    data_layer: "Data Layer (CPU)" {
+      style: {
+        fill: "#b2dfdb"
+        stroke: "#00897b"
+      }
+
+      postgresql: "PostgreSQL\n(Primary DB)" {
+        style.fill: "#80cbc4"
+      }
+      
+      redis: "Redis\n(Cache/Sessions)" {
+        style.fill: "#80cbc4"
+      }
+      
+      qdrant_db: "Qdrant\n(Vector Store)" {
+        style.fill: "#80cbc4"
+      }
+
+      mem0: "Mem0\n(Memory Layer)" {
+        style.fill: "#80cbc4"
+      }
+    }
+  }
+
+  # ============================================
+  # KUBERNETES INFRASTRUCTURE
+  # ============================================
+
+  k8s_infra: "Kubernetes Infrastructure" {
+    style: {
+      fill: "#e1f5fe"
+      stroke: "#0277bd"
+      stroke-width: 2
+    }
+
+    # Networking
+    k8s_networking: "Cluster Networking" {
+      style.fill: "#b3e5fc"
+
+      cilium: "Cilium CNI" {
+        style.fill: "#81d4fa"
+        
+        ebpf: "eBPF Dataplane"
+        network_policy: "Network Policies\n(Zero Trust)"
+        encryption: "WireGuard\nPod Encryption"
+        hubble: "Hubble\n(Observability)"
+      }
+
+      traefik: "Traefik Ingress" {
+        style.fill: "#4fc3f7"
+        
+        https: "HTTPS Termination"
+        middleware: "Auth Middleware"
+        rate_limit: "Rate Limiting"
+      }
+    }
+
+    # Storage
+    k8s_storage: "Persistent Storage" {
+      style.fill: "#b3e5fc"
+
+      longhorn: "Longhorn\n(Distributed Storage)" {
+        style.fill: "#81d4fa"
+        
+        replication: "3x Replication"
+        snapshots: "Automated Snapshots"
+        encryption: "Volume Encryption\n(LUKS)"
+      }
+
+      local_nvme: "Local NVMe\n(High-Performance)" {
+        style.fill: "#4fc3f7"
+        
+        model_weights: "Model Weights\nStorage"
+      }
+    }
+
+    # Security Components
+    k8s_security: "Security Components" {
+      style.fill: "#ffcdd2"
+
+      falco: "Falco\n(Runtime Security)" {
+        style.fill: "#ef9a9a"
+      }
+      
+      trivy: "Trivy\n(Image Scanning)" {
+        style.fill: "#ef9a9a"
+      }
+      
+      pss: "Pod Security\nStandards (Restricted)" {
+        style.fill: "#ef9a9a"
+      }
+      
+      network_policies: "NetworkPolicies\n(Default Deny)" {
+        style.fill: "#ef9a9a"
+      }
+    }
+
+    # GPU Operator
+    gpu_operator: "NVIDIA GPU Stack" {
+      style.fill: "#c8e6c9"
+
+      gpu_op: "GPU Operator" {
+        style.fill: "#a5d6a7"
+      }
+      
+      device_plugin: "Device Plugin" {
+        style.fill: "#a5d6a7"
+      }
+      
+      dcgm: "DCGM Exporter\n(Metrics)" {
+        style.fill: "#a5d6a7"
+      }
+      
+      mig_manager: "MIG Manager\n(Future)" {
+        style.fill: "#a5d6a7"
+        style.stroke-dash: 5
+      }
+    }
+  }
+}
+
+# ============================================================================
+# STORAGE VLAN (VLAN 30)
+# ============================================================================
+
+storage_vlan: "Storage VLAN (VLAN 30) - 10.10.30.0/24" {
+  style: {
+    fill: "#fce4ec"
+    stroke: "#c2185b"
+    stroke-width: 2
+    border-radius: 8
+  }
+
+  nas_storage: "NAS Storage" {
+    style.fill: "#f8bbd9"
+
+    nas_specs: |md
+      **NAS Configuration:**
+      - 6x M.2 NVMe Drives
+      - RAID Configuration
+      - Encrypted at Rest
+      - Dedicated Storage Network
+    |
+  }
+
+  backup_targets: "Local Backup Targets" {
+    style.fill: "#f48fb1"
+    
+    velero_local: "Velero Snapshots"
+    db_backups: "Database Backups"
+    etcd_backups: "etcd Snapshots"
+  }
+}
+
+# ============================================================================
+# EXTERNAL SERVICES (GCP)
+# ============================================================================
+
+gcp_services: "GCP Cloud Services" {
+  style: {
+    fill: "#e8f5e9"
+    stroke: "#2e7d32"
+    stroke-width: 2
+    border-radius: 10
+  }
+
+  gcp_label: "Google Cloud Platform" {
+    style: {
+      fill: "#c8e6c9"
+      font-size: 16
+      bold: true
+    }
+  }
+
+  # Secrets Management
+  secrets_mgmt: "Secrets Management" {
+    style.fill: "#a5d6a7"
+    
+    secret_manager: "GCP Secret Manager" {
+      style.fill: "#81c784"
+    }
+    
+    kms: "Cloud KMS\n(Key Management)" {
+      style.fill: "#81c784"
+    }
+  }
+
+  # Container Registry
+  registry: "Container Registry" {
+    style.fill: "#a5d6a7"
+    
+    artifact_registry: "Artifact Registry" {
+      style.fill: "#81c784"
+      
+      docker_images: "Docker Images"
+      helm_charts: "Helm Charts"
+    }
+  }
+
+  # Backup Storage
+  backup_storage: "Backup Storage" {
+    style.fill: "#a5d6a7"
+    
+    gcs: "Cloud Storage\n(Velero Backups)" {
+      style.fill: "#81c784"
+    }
+    
+    retention: |md
+      **Retention Policy:**
+      - Daily: 7 days
+      - Weekly: 4 weeks
+      - Monthly: 12 months
+    |
+  }
+
+  # Future Cloud Burst
+  cloud_burst: "Cloud Burst (Future)" {
+    style: {
+      fill: "#c8e6c9"
+      stroke: "#4caf50"
+      stroke-dash: 5
+    }
+    
+    gke: "GKE Cluster\n(Overflow Capacity)"
+    gpu_nodes: "GPU Node Pool\n(On-Demand)"
+  }
+}
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+
+monitoring: "Monitoring & Observability" {
+  style: {
+    fill: "#fff8e1"
+    stroke: "#ff8f00"
+    stroke-width: 2
+    border-radius: 10
+  }
+
+  grafana_cloud: "Grafana Cloud" {
+    style: {
+      fill: "#ffecb3"
+      stroke: "#ffa000"
+    }
+    
+    dashboards: "Dashboards" {
+      style.fill: "#ffe082"
+      
+      gpu_metrics: "GPU Utilization"
+      cluster_health: "Cluster Health"
+      voice_kpis: "Voice Agent KPIs"
+      security_events: "Security Events"
+    }
+
+    alerting: "Alerting" {
+      style.fill: "#ffd54f"
+      
+      pagerduty: "PagerDuty\nIntegration"
+      slack_alerts: "Slack\nNotifications"
+      email: "Email Alerts"
+    }
+  }
+
+  prometheus_stack: "Prometheus Stack (Internal)" {
+    style.fill: "#ffecb3"
+    
+    prometheus: "Prometheus\n(Metrics)"
+    loki: "Loki\n(Logs)"
+    tempo: "Tempo\n(Traces)"
+  }
+
+  # Microsoft Sentinel Integration
+  sentinel: "Microsoft Sentinel" {
+    style: {
+      fill: "#e3f2fd"
+      stroke: "#1565c0"
+    }
+    
+    siem: "SIEM Integration"
+    security_logs: "Security Log\nForwarding"
+    compliance: "Compliance\nReporting"
+  }
+}
+
+# ============================================================================
+# COMPLIANCE & SECURITY CONTROLS
+# ============================================================================
+
+compliance: "Compliance & Security Framework" {
+  style: {
+    fill: "#fafafa"
+    stroke: "#616161"
+    stroke-width: 2
+    border-radius: 10
+  }
+
+  frameworks: "Compliance Frameworks" {
+    style.fill: "#eeeeee"
+    
+    soc2: "SOC 2 Type II" {
+      style.fill: "#e0e0e0"
+    }
+    hipaa: "HIPAA" {
+      style.fill: "#e0e0e0"
+    }
+    nist: "NIST 800-53" {
+      style.fill: "#e0e0e0"
+    }
+    hitrust: "HiTrust i1\n(Target)" {
+      style.fill: "#e0e0e0"
+      style.stroke-dash: 3
+    }
+  }
+
+  security_controls: "Security Controls" {
+    style.fill: "#e0e0e0"
+    
+    encryption: "Encryption" {
+      style.fill: "#bdbdbd"
+      
+      tls: "TLS 1.3 (Transit)"
+      aes: "AES-256 (Rest)"
+      fips: "FIPS 140-2"
+    }
+
+    access: "Access Control" {
+      style.fill: "#bdbdbd"
+      
+      mfa: "MFA Required"
+      rbac: "RBAC"
+      pam: "Privileged Access\nManagement"
+      sso: "SSO/SAML"
+    }
+
+    audit: "Audit & Logging" {
+      style.fill: "#bdbdbd"
+      
+      audit_logs: "Audit Logs\n(Immutable)"
+      log_retention: "Log Retention\n(7 Years)"
+      change_mgmt: "Change Management"
+    }
+  }
+}
+
+# ============================================================================
+# CONNECTIONS - EXTERNAL TO DMZ
+# ============================================================================
+
+external.internet -> isp_zone.att_fiber: "10 Gbps\nSymmetric" {
+  style: {
+    stroke: "#e65100"
+    stroke-width: 2
+  }
+}
+
+external.external_users.employees -> dmz.vpn_gateway.openvpn: "VPN Tunnel\n(TLS 1.3)" {
+  style: {
+    stroke: "#7b1fa2"
+    stroke-width: 2
+  }
+}
+
+external.external_users.api_consumers -> dmz.waf: "HTTPS\n(IP Filtered)" {
+  style: {
+    stroke: "#1565c0"
+    stroke-width: 2
+  }
+}
+
+isp_zone.static_ips -> dmz.udm_pro: "Static IPs" {
+  style.stroke: "#e65100"
+}
+
+# DMZ Internal Connections
+dmz.udm_pro -> dmz.vpn_gateway: "VPN Traffic"
+dmz.udm_pro -> dmz.waf: "Web Traffic"
+dmz.waf -> dmz.udm_pro.ids_ips: "Inspection"
+
+# ============================================================================
+# CONNECTIONS - DMZ TO INTERNAL
+# ============================================================================
+
+dmz.vpn_gateway.openvpn -> mgmt_vlan.jump_machine: "Authenticated\nAdmin Access" {
+  style: {
+    stroke: "#283593"
+    stroke-width: 2
+  }
+}
+
+dmz.waf -> cluster_vlan.k8s_infra.k8s_networking.traefik: "Filtered\nHTTPS Traffic" {
+  style: {
+    stroke: "#0277bd"
+    stroke-width: 2
+  }
+}
+
+# ============================================================================
+# CONNECTIONS - MANAGEMENT VLAN
+# ============================================================================
+
+mgmt_vlan.jump_machine -> cluster_vlan.control_plane.sol: "kubectl\n(mTLS)" {
+  style: {
+    stroke: "#1a237e"
+    stroke-width: 2
+  }
+}
+
+mgmt_vlan.kvm_access.kvm1 -> cluster_vlan.control_plane.sol: "KVM Console" {
+  style: {
+    stroke: "#512da8"
+    stroke-dash: 3
+  }
+}
+
+mgmt_vlan.kvm_access.kvm2 -> cluster_vlan.worker_nodes.luna: "KVM Console" {
+  style: {
+    stroke: "#512da8"
+    stroke-dash: 3
+  }
+}
+
+mgmt_vlan.kvm_access.kvm2 -> cluster_vlan.worker_nodes.pluto: "KVM Console" {
+  style: {
+    stroke: "#512da8"
+    stroke-dash: 3
+  }
+}
+
+# ============================================================================
+# CONNECTIONS - CLUSTER INTERNAL
+# ============================================================================
+
+cluster_vlan.network_backbone.switch -> cluster_vlan.control_plane.sol: "10 Gbps" {
+  style: {
+    stroke: "#0d47a1"
+    stroke-width: 3
+  }
+}
+
+cluster_vlan.network_backbone.switch -> cluster_vlan.worker_nodes.luna: "10 Gbps" {
+  style: {
+    stroke: "#0d47a1"
+    stroke-width: 3
+  }
+}
+
+cluster_vlan.network_backbone.switch -> cluster_vlan.worker_nodes.pluto: "10 Gbps" {
+  style: {
+    stroke: "#0d47a1"
+    stroke-width: 3
+  }
+}
+
+# Control Plane to Workers
+cluster_vlan.control_plane.sol.rke2_control.kube_apiserver -> cluster_vlan.worker_nodes.luna: "kubelet API\n(mTLS)" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 2
+  }
+}
+
+cluster_vlan.control_plane.sol.rke2_control.kube_apiserver -> cluster_vlan.worker_nodes.pluto: "kubelet API\n(mTLS)" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 2
+  }
+}
+
+# ============================================================================
+# CONNECTIONS - STORAGE
+# ============================================================================
+
+cluster_vlan.k8s_infra.k8s_storage.longhorn -> storage_vlan.nas_storage: "Backup\nReplication" {
+  style: {
+    stroke: "#c2185b"
+    stroke-width: 2
+  }
+}
+
+storage_vlan.backup_targets -> gcp_services.backup_storage.gcs: "Encrypted\nBackup Upload" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
+
+# ============================================================================
+# CONNECTIONS - EXTERNAL SERVICES
+# ============================================================================
+
+cluster_vlan.control_plane.sol.platform_services.vault -> gcp_services.secrets_mgmt.secret_manager: "Secrets Sync\n(TLS)" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 2
+  }
+}
+
+cluster_vlan.k8s_infra.k8s_security.trivy -> gcp_services.registry.artifact_registry: "Image Pull\n& Scan" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 2
+  }
+}
+
+cluster_vlan.control_plane.sol.platform_services.argocd -> gcp_services.registry.artifact_registry: "Helm Chart\nSync" {
+  style: {
+    stroke: "#2e7d32"
+    stroke-width: 2
+  }
+}
+
+# ============================================================================
+# CONNECTIONS - MONITORING
+# ============================================================================
+
+cluster_vlan.k8s_infra.gpu_operator.dcgm -> monitoring.prometheus_stack.prometheus: "GPU Metrics" {
+  style: {
+    stroke: "#ff8f00"
+  }
+}
+
+monitoring.prometheus_stack -> monitoring.grafana_cloud: "Metrics &\nLogs Export" {
+  style: {
+    stroke: "#ffa000"
+    stroke-width: 2
+  }
+}
+
+cluster_vlan.k8s_infra.k8s_security.falco -> monitoring.sentinel: "Security\nEvents" {
+  style: {
+    stroke: "#1565c0"
+    stroke-width: 2
+  }
+}
+
+monitoring.prometheus_stack.loki -> monitoring.sentinel: "Log\nForwarding" {
+  style: {
+    stroke: "#1565c0"
+  }
+}
+
+# ============================================================================
+# CONNECTIONS - APPLICATION DATA FLOW
+# ============================================================================
+
+cluster_vlan.workloads.app_services.librechat -> cluster_vlan.workloads.ai_services.vllm_stack: "gRPC\n(Internal)" {
+  style: {
+    stroke: "#8e24aa"
+  }
+}
+
+cluster_vlan.workloads.app_services.n8n -> cluster_vlan.workloads.ai_services.vllm_stack: "gRPC\n(Internal)" {
+  style: {
+    stroke: "#8e24aa"
+  }
+}
+
+cluster_vlan.workloads.voice_stack -> cluster_vlan.workloads.ai_services.vllm_stack: "gRPC\n(Ultra-Low Latency)" {
+  style: {
+    stroke: "#fb8c00"
+    stroke-width: 2
+  }
+}
+
+cluster_vlan.workloads.ai_services -> cluster_vlan.workloads.data_layer.qdrant_db: "Vector\nQueries" {
+  style: {
+    stroke: "#00897b"
+  }
+}
+
+cluster_vlan.workloads.app_services -> cluster_vlan.workloads.data_layer.postgresql: "SQL\nQueries" {
+  style: {
+    stroke: "#00897b"
+  }
+}
+
+cluster_vlan.workloads.app_services -> cluster_vlan.workloads.data_layer.redis: "Cache\nOps" {
+  style: {
+    stroke: "#00897b"
+  }
+}
+
+# ============================================================================
+# LEGEND
+# ============================================================================
+
+legend: "Legend" {
+  style: {
+    fill: "#fafafa"
+    stroke: "#9e9e9e"
+    border-radius: 8
+  }
+
+  zones: "Security Zones" {
+    external_z: "External (Untrusted)" {
+      style.fill: "#ffebee"
+    }
+    dmz_z: "DMZ (Perimeter)" {
+      style.fill: "#fce4ec"
+    }
+    mgmt_z: "Management VLAN" {
+      style.fill: "#e8eaf6"
+    }
+    cluster_z: "Cluster VLAN" {
+      style.fill: "#e3f2fd"
+    }
+    storage_z: "Storage VLAN" {
+      style.fill: "#fce4ec"
+    }
+  }
+
+  traffic_types: "Traffic Types" {
+    encrypted: "Encrypted (TLS/mTLS)" {
+      style.stroke-width: 2
+    }
+    backup: "Backup Traffic" {
+      style.stroke-dash: 3
+    }
+    management: "Management Access" {
+      style.stroke: "#1a237e"
+    }
+  }
+
+  node_types: "Node Types" {
+    control: "Control Plane" {
+      style.fill: "#bbdefb"
+    }
+    gpu_worker: "GPU Worker" {
+      style.fill: "#c8e6c9"
+    }
+    cpu_service: "CPU Service" {
+      style.fill: "#fff9c4"
+    }
+  }
+}
