@@ -1,0 +1,404 @@
+# SCP Network Architecture - VLAN Topology
+# Shows all VLANs, subnets, VPN access, DMZ, and IP allocation
+
+direction: right
+
+title: "SCP Network Architecture - VLAN Topology" {
+  shape: text
+  near: top-center
+  style: {
+    font-size: 24
+    bold: true
+    font-color: "#1a237e"
+  }
+}
+
+# ============================================================================
+# INTERNET / EXTERNAL
+# ============================================================================
+
+internet: "Internet" {
+  shape: cloud
+  style: {
+    fill: "#ffcdd2"
+    stroke: "#c62828"
+    stroke-width: 2
+  }
+}
+
+# ============================================================================
+# ISP / EXTERNAL IPs
+# ============================================================================
+
+isp: "AT&T Fiber 10Gbps" {
+  style: {
+    fill: "#fff3e0"
+    stroke: "#e65100"
+    stroke-width: 2
+    border-radius: 8
+  }
+  
+  label: "8 Static Public IPs"
+  
+  ips: "External IP Allocation" {
+    style.fill: "#ffe0b2"
+    
+    ip1: "IP 1: VPN Gateway" { style.fill: "#ffcc80" }
+    ip2: "IP 2: Traefik Ingress" { style.fill: "#ffcc80" }
+    ip3: "IP 3: Management" { style.fill: "#ffcc80" }
+    ip4: "IP 4: Reserved" { style.fill: "#fff8e1" }
+    ip5: "IP 5: Reserved" { style.fill: "#fff8e1" }
+    ip6: "IP 6: Reserved" { style.fill: "#fff8e1" }
+    ip7: "IP 7: Reserved" { style.fill: "#fff8e1" }
+    ip8: "IP 8: Reserved" { style.fill: "#fff8e1" }
+  }
+}
+
+# ============================================================================
+# DMZ / PERIMETER
+# ============================================================================
+
+dmz: "DMZ / Perimeter" {
+  style: {
+    fill: "#fce4ec"
+    stroke: "#c2185b"
+    stroke-width: 3
+    border-radius: 10
+  }
+  
+  udm: "UniFi Dream Machine Pro" {
+    style: {
+      fill: "#f48fb1"
+      stroke: "#880e4f"
+      stroke-width: 2
+    }
+    
+    features: "Firewall | IDS/IPS | DPI\nGeo-Blocking | VPN Server" {
+      style.fill: "#f8bbd0"
+    }
+  }
+  
+  vpn: "OpenVPN Gateway" {
+    style: {
+      fill: "#ce93d8"
+      stroke: "#7b1fa2"
+      stroke-width: 2
+    }
+    
+    config: "Port: 1194/UDP\nSAML + YubiKey MFA\nEntra ID Integration" {
+      style.fill: "#e1bee7"
+    }
+  }
+  
+  waf: "Traefik + ModSecurity" {
+    style: {
+      fill: "#b39ddb"
+      stroke: "#512da8"
+      stroke-width: 2
+    }
+    
+    config: "HTTPS :443\nOWASP CRS\nRate Limiting\nIP Whitelist" {
+      style.fill: "#d1c4e9"
+    }
+  }
+}
+
+# ============================================================================
+# INTERNAL NETWORK - CORE SWITCH
+# ============================================================================
+
+switch: "UniFi 10G Aggregation Switch" {
+  style: {
+    fill: "#e3f2fd"
+    stroke: "#1565c0"
+    stroke-width: 2
+    border-radius: 8
+  }
+  
+  label: "VLAN Trunking"
+}
+
+# ============================================================================
+# VLAN 10 - MANAGEMENT
+# ============================================================================
+
+vlan10: "VLAN 10 - Management" {
+  style: {
+    fill: "#e8eaf6"
+    stroke: "#3f51b5"
+    stroke-width: 3
+    border-radius: 10
+  }
+  
+  subnet: "Subnet: 10.10.10.0/24\nGateway: 10.10.10.1\nUsable: 10.10.10.2 - 10.10.10.254" {
+    style: {
+      fill: "#c5cae9"
+      font-size: 12
+    }
+  }
+  
+  devices: "Devices" {
+    style.fill: "#9fa8da"
+    
+    jump: "Jump Machine\n10.10.10.5" {
+      style.fill: "#7986cb"
+    }
+    
+    kvm1: "KVM #1\n10.10.10.20" {
+      style.fill: "#7986cb"
+    }
+    
+    kvm2: "KVM #2\n10.10.10.21" {
+      style.fill: "#7986cb"
+    }
+    
+    sol_mgmt: "SOL (mgmt)\n10.10.10.10" {
+      style.fill: "#7986cb"
+    }
+    
+    luna_mgmt: "LUNA (mgmt)\n10.10.10.11" {
+      style.fill: "#7986cb"
+    }
+    
+    pluto_mgmt: "PLUTO (mgmt)\n10.10.10.12" {
+      style.fill: "#7986cb"
+    }
+  }
+  
+  dns: "DNS: 10.10.10.1 (UDM)\nBackup: 8.8.8.8, 8.8.4.4" {
+    style.fill: "#c5cae9"
+  }
+}
+
+# ============================================================================
+# VLAN 20 - CLUSTER
+# ============================================================================
+
+vlan20: "VLAN 20 - Kubernetes Cluster" {
+  style: {
+    fill: "#e3f2fd"
+    stroke: "#1976d2"
+    stroke-width: 3
+    border-radius: 10
+  }
+  
+  subnet: "Subnet: 10.10.20.0/24\nGateway: 10.10.20.1\nUsable: 10.10.20.2 - 10.10.20.254" {
+    style: {
+      fill: "#bbdefb"
+      font-size: 12
+    }
+  }
+  
+  nodes: "Kubernetes Nodes" {
+    style.fill: "#90caf9"
+    
+    sol: "SOL (Control Plane)\n10.10.20.10" {
+      style.fill: "#64b5f6"
+    }
+    
+    luna: "LUNA (Worker)\n10.10.20.11" {
+      style.fill: "#42a5f5"
+    }
+    
+    pluto: "PLUTO (Worker)\n10.10.20.12" {
+      style.fill: "#42a5f5"
+    }
+  }
+  
+  k8s_networks: "Kubernetes Networks" {
+    style.fill: "#bbdefb"
+    
+    pod: "Pod Network (Cilium)\n10.42.0.0/16" {
+      style.fill: "#90caf9"
+    }
+    
+    svc: "Service Network\n10.43.0.0/16" {
+      style.fill: "#90caf9"
+    }
+  }
+}
+
+# ============================================================================
+# VLAN 30 - STORAGE
+# ============================================================================
+
+vlan30: "VLAN 30 - Storage" {
+  style: {
+    fill: "#fce4ec"
+    stroke: "#d81b60"
+    stroke-width: 3
+    border-radius: 10
+  }
+  
+  subnet: "Subnet: 10.10.30.0/24\nGateway: 10.10.30.1\nUsable: 10.10.30.2 - 10.10.30.254" {
+    style: {
+      fill: "#f8bbd0"
+      font-size: 12
+    }
+  }
+  
+  devices: "Storage Devices" {
+    style.fill: "#f48fb1"
+    
+    nas: "NAS Server\n10.10.30.50" {
+      style.fill: "#ec407a"
+    }
+    
+    sol_stor: "SOL (storage)\n10.10.30.10" {
+      style.fill: "#ec407a"
+    }
+    
+    luna_stor: "LUNA (storage)\n10.10.30.11" {
+      style.fill: "#ec407a"
+    }
+    
+    pluto_stor: "PLUTO (storage)\n10.10.30.12" {
+      style.fill: "#ec407a"
+    }
+  }
+  
+  protocols: "Protocols: NFS, iSCSI\nLonghorn Replication" {
+    style.fill: "#f8bbd0"
+  }
+}
+
+# ============================================================================
+# VLAN 40 - DMZ (Internal)
+# ============================================================================
+
+vlan40: "VLAN 40 - DMZ Services" {
+  style: {
+    fill: "#fff8e1"
+    stroke: "#ffa000"
+    stroke-width: 3
+    border-radius: 10
+  }
+  
+  subnet: "Subnet: 10.10.40.0/24\nGateway: 10.10.40.1\nUsable: 10.10.40.2 - 10.10.40.254" {
+    style: {
+      fill: "#ffecb3"
+      font-size: 12
+    }
+  }
+  
+  services: "Public-Facing Services" {
+    style.fill: "#ffe082"
+    
+    traefik: "Traefik Ingress\n10.10.40.10" {
+      style.fill: "#ffd54f"
+    }
+    
+    librechat: "LibreChat\n(via Traefik)" {
+      style.fill: "#ffca28"
+    }
+    
+    n8n: "n8n\n(via Traefik)" {
+      style.fill: "#ffca28"
+    }
+    
+    langfuse: "Langfuse\n(via Traefik)" {
+      style.fill: "#ffca28"
+    }
+  }
+}
+
+# ============================================================================
+# VLAN 50 - VPN CLIENTS
+# ============================================================================
+
+vlan50: "VLAN 50 - VPN Clients" {
+  style: {
+    fill: "#e8f5e9"
+    stroke: "#388e3c"
+    stroke-width: 3
+    border-radius: 10
+  }
+  
+  subnet: "Subnet: 10.10.50.0/24\nGateway: 10.10.50.1\nDHCP Pool: 10.10.50.100 - 10.10.50.200" {
+    style: {
+      fill: "#c8e6c9"
+      font-size: 12
+    }
+  }
+  
+  access: "VPN Client Access" {
+    style.fill: "#a5d6a7"
+    
+    allowed: "Allowed Access:\n- VLAN 10 (Management)\n- VLAN 20 (Cluster API)\n- VLAN 40 (DMZ Services)" {
+      style.fill: "#81c784"
+    }
+    
+    denied: "Denied Access:\n- VLAN 30 (Storage)\n- Direct Internet" {
+      style.fill: "#ef9a9a"
+    }
+  }
+}
+
+# ============================================================================
+# CONNECTIONS
+# ============================================================================
+
+internet -> isp: "10 Gbps" {
+  style.stroke: "#e65100"
+  style.stroke-width: 3
+}
+
+isp -> dmz.udm: "WAN" {
+  style.stroke: "#c62828"
+  style.stroke-width: 2
+}
+
+dmz.udm -> dmz.vpn: "VPN Traffic" {
+  style.stroke: "#7b1fa2"
+}
+
+dmz.udm -> dmz.waf: "HTTPS Traffic" {
+  style.stroke: "#512da8"
+}
+
+dmz.udm -> switch: "Trunk (All VLANs)" {
+  style.stroke: "#1565c0"
+  style.stroke-width: 3
+}
+
+switch -> vlan10: "Tagged VLAN 10" {
+  style.stroke: "#3f51b5"
+  style.stroke-width: 2
+}
+
+switch -> vlan20: "Tagged VLAN 20" {
+  style.stroke: "#1976d2"
+  style.stroke-width: 2
+}
+
+switch -> vlan30: "Tagged VLAN 30" {
+  style.stroke: "#d81b60"
+  style.stroke-width: 2
+}
+
+switch -> vlan40: "Tagged VLAN 40" {
+  style.stroke: "#ffa000"
+  style.stroke-width: 2
+}
+
+dmz.vpn -> vlan50: "VPN Clients" {
+  style.stroke: "#388e3c"
+  style.stroke-width: 2
+  style.stroke-dash: 3
+}
+
+# Inter-VLAN routing indicators
+vlan10 -> vlan20: "Admin Access" {
+  style.stroke: "#9e9e9e"
+  style.stroke-dash: 5
+}
+
+vlan20 -> vlan30: "Storage I/O" {
+  style.stroke: "#9e9e9e"
+  style.stroke-dash: 5
+}
+
+vlan40 -> vlan20: "Ingress to Pods" {
+  style.stroke: "#9e9e9e"
+  style.stroke-dash: 5
+}
