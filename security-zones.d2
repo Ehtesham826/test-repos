@@ -1,0 +1,590 @@
+# SCP Security Zones Diagram
+# Trust boundaries, firewall rules, network policies
+# Zero-Trust Architecture
+
+direction: right
+
+title: "SCP Security Zones & Trust Boundaries" {
+  shape: text
+  near: top-center
+  style: {
+    font-size: 24
+    bold: true
+    font-color: "#1a237e"
+  }
+}
+
+# ============================================================================
+# ZONE 0 - UNTRUSTED (Internet)
+# ============================================================================
+
+zone0: "ZONE 0 - UNTRUSTED" {
+  style: {
+    fill: "#ffebee"
+    stroke: "#c62828"
+    stroke-width: 4
+    border-radius: 10
+  }
+
+  label: "Trust Level: NONE"
+
+  internet: "Public Internet" {
+    shape: cloud
+    style: {
+      fill: "#ffcdd2"
+      stroke: "#b71c1c"
+    }
+  }
+
+  threats: "Threat Actors\nBots | Scanners | Attackers" {
+    shape: hexagon
+    style: {
+      fill: "#ef9a9a"
+      stroke: "#c62828"
+    }
+  }
+
+  legitimate: "Legitimate Users\n(Unauthenticated)" {
+    shape: person
+    style.fill: "#ffcdd2"
+  }
+}
+
+# ============================================================================
+# ZONE 1 - DMZ / PERIMETER
+# ============================================================================
+
+zone1: "ZONE 1 - DMZ / PERIMETER" {
+  style: {
+    fill: "#fff3e0"
+    stroke: "#e65100"
+    stroke-width: 4
+    border-radius: 10
+  }
+
+  label: "Trust Level: LOW"
+
+  firewall: "Edge Firewall" {
+    style: {
+      fill: "#ffe0b2"
+      stroke: "#e65100"
+      stroke-width: 2
+    }
+
+    udm: "UniFi DM Pro" {
+      style.fill: "#ffcc80"
+    }
+
+    ids_ips: "IDS/IPS\nDPI | Geo-Block" {
+      style.fill: "#ffcc80"
+    }
+  }
+
+  vpn_gateway: "VPN Gateway" {
+    style: {
+      fill: "#fff9c4"
+      stroke: "#f9a825"
+      stroke-width: 2
+    }
+
+    openvpn: "OpenVPN" {
+      style.fill: "#fff59d"
+    }
+
+    mfa: "SAML + YubiKey\n2FA Required" {
+      style.fill: "#fff59d"
+    }
+  }
+
+  waf: "Web Application Firewall" {
+    style: {
+      fill: "#ffe0b2"
+      stroke: "#ff6f00"
+      stroke-width: 2
+    }
+
+    modsec: "ModSecurity\nOWASP CRS 3.x" {
+      style.fill: "#ffcc80"
+    }
+
+    rate_limit: "Rate Limiting\n100 req/min" {
+      style.fill: "#ffcc80"
+    }
+
+    ip_whitelist: "IP Whitelist\n(API Consumers)" {
+      style.fill: "#ffcc80"
+    }
+  }
+}
+
+# ============================================================================
+# ZONE 2 - MANAGEMENT
+# ============================================================================
+
+zone2: "ZONE 2 - MANAGEMENT" {
+  style: {
+    fill: "#e8eaf6"
+    stroke: "#3f51b5"
+    stroke-width: 4
+    border-radius: 10
+  }
+
+  label: "Trust Level: HIGH"
+
+  admin_access: "Admin Access" {
+    style: {
+      fill: "#c5cae9"
+      stroke: "#303f9f"
+      stroke-width: 2
+    }
+
+    vpn_clients: "VPN Clients\n(Authenticated)" {
+      style.fill: "#9fa8da"
+    }
+
+    kubectl: "kubectl\nHelm | Terraform" {
+      style.fill: "#9fa8da"
+    }
+  }
+
+  oob: "Out-of-Band" {
+    style: {
+      fill: "#d1c4e9"
+      stroke: "#512da8"
+      stroke-width: 2
+    }
+
+    kvm: "KVM Consoles\n(Emergency Only)" {
+      style.fill: "#b39ddb"
+    }
+  }
+}
+
+# ============================================================================
+# ZONE 3 - KUBERNETES CLUSTER
+# ============================================================================
+
+zone3: "ZONE 3 - KUBERNETES CLUSTER" {
+  style: {
+    fill: "#e3f2fd"
+    stroke: "#1565c0"
+    stroke-width: 4
+    border-radius: 10
+  }
+
+  label: "Trust Level: MEDIUM-HIGH"
+
+  control_plane: "Control Plane" {
+    style: {
+      fill: "#bbdefb"
+      stroke: "#0d47a1"
+      stroke-width: 3
+    }
+
+    masters: "SOL (Master #1)\nMaster #2 (HA)" {
+      style.fill: "#90caf9"
+    }
+
+    api: "kube-apiserver\nmTLS | RBAC" {
+      style.fill: "#64b5f6"
+    }
+
+    etcd: "etcd\nEncrypted\nHA Sync" {
+      style.fill: "#64b5f6"
+    }
+  }
+
+  workers: "Worker Nodes" {
+    style: {
+      fill: "#c8e6c9"
+      stroke: "#2e7d32"
+      stroke-width: 2
+    }
+
+    luna: "LUNA\n3x A4500 GPU" {
+      style.fill: "#a5d6a7"
+    }
+
+    pluto: "PLUTO\n2x A4500 GPU" {
+      style.fill: "#a5d6a7"
+    }
+  }
+
+  ingress: "Ingress Layer" {
+    style: {
+      fill: "#b3e5fc"
+      stroke: "#0288d1"
+      stroke-width: 2
+    }
+
+    traefik: "Traefik\nTLS Termination" {
+      style.fill: "#81d4fa"
+    }
+
+    cert_mgr: "cert-manager\nAuto-Renewal" {
+      style.fill: "#81d4fa"
+    }
+  }
+
+  network_security: "Network Security" {
+    style: {
+      fill: "#ffcdd2"
+      stroke: "#c62828"
+      stroke-width: 2
+    }
+
+    cilium: "Cilium CNI\neBPF | WireGuard" {
+      style.fill: "#ef9a9a"
+    }
+
+    netpol: "NetworkPolicies\nDefault Deny All" {
+      style.fill: "#ef9a9a"
+    }
+
+    pss: "Pod Security\nStandards" {
+      style.fill: "#ef9a9a"
+    }
+  }
+}
+
+# ============================================================================
+# ZONE 4 - APPLICATION WORKLOADS
+# ============================================================================
+
+zone4: "ZONE 4 - APPLICATION WORKLOADS" {
+  style: {
+    fill: "#fff9c4"
+    stroke: "#f9a825"
+    stroke-width: 4
+    border-radius: 10
+  }
+
+  label: "Trust Level: MEDIUM"
+
+  external_apps: "External-Facing Apps" {
+    style: {
+      fill: "#ffe082"
+      stroke: "#ff8f00"
+      stroke-width: 2
+    }
+
+    librechat: "LibreChat\nSAML Auth" {
+      style.fill: "#ffd54f"
+    }
+
+    n8n: "n8n\nSAML Auth" {
+      style.fill: "#ffd54f"
+    }
+
+    langfuse: "Langfuse\nSAML Auth" {
+      style.fill: "#ffd54f"
+    }
+  }
+
+  internal_apps: "Internal Services" {
+    style: {
+      fill: "#fff59d"
+      stroke: "#fbc02d"
+      stroke-width: 2
+    }
+
+    voice: "Voice Agent\nLiveKit | Asterisk" {
+      style.fill: "#ffee58"
+    }
+
+    python_api: "Python APIs\nInternal Only" {
+      style.fill: "#ffee58"
+    }
+  }
+
+  ai_services: "AI/ML Services" {
+    style: {
+      fill: "#c8e6c9"
+      stroke: "#388e3c"
+      stroke-width: 2
+    }
+
+    vllm: "vLLM Stack\nLLM | STT | TTS" {
+      style.fill: "#a5d6a7"
+    }
+
+    embedding: "Embedding\nModel" {
+      style.fill: "#a5d6a7"
+    }
+  }
+}
+
+# ============================================================================
+# ZONE 5 - DATA LAYER
+# ============================================================================
+
+zone5: "ZONE 5 - DATA LAYER" {
+  style: {
+    fill: "#fce4ec"
+    stroke: "#c2185b"
+    stroke-width: 4
+    border-radius: 10
+  }
+
+  label: "Trust Level: HIGHEST"
+
+  databases: "Databases" {
+    style: {
+      fill: "#f8bbd0"
+      stroke: "#ad1457"
+      stroke-width: 2
+    }
+
+    postgres: "PostgreSQL\nEncrypted | PITR" {
+      style.fill: "#f48fb1"
+    }
+
+    redis: "Redis\nIn-Memory Cache" {
+      style.fill: "#f48fb1"
+    }
+
+    qdrant: "Qdrant\nVector DB" {
+      style.fill: "#f48fb1"
+    }
+  }
+
+  storage: "Persistent Storage" {
+    style: {
+      fill: "#e1bee7"
+      stroke: "#7b1fa2"
+      stroke-width: 2
+    }
+
+    longhorn: "Longhorn\n3x Replication\nLUKS Encrypted" {
+      style.fill: "#ce93d8"
+    }
+
+    nas: "NAS\nBackup Target" {
+      style.fill: "#ce93d8"
+    }
+  }
+
+  secrets: "Secrets" {
+    style: {
+      fill: "#d1c4e9"
+      stroke: "#512da8"
+      stroke-width: 2
+    }
+
+    eso: "External Secrets\nOperator" {
+      style.fill: "#b39ddb"
+    }
+
+    gcp_sm: "GCP Secret\nManager" {
+      style.fill: "#b39ddb"
+    }
+  }
+}
+
+# ============================================================================
+# ZONE 6 - EXTERNAL SERVICES
+# ============================================================================
+
+zone6: "ZONE 6 - EXTERNAL CLOUD" {
+  style: {
+    fill: "#e8f5e9"
+    stroke: "#388e3c"
+    stroke-width: 4
+    border-radius: 10
+  }
+
+  label: "Trust Level: MEDIUM (Verified)"
+
+  gcp: "Google Cloud" {
+    style: {
+      fill: "#c8e6c9"
+      stroke: "#2e7d32"
+      stroke-width: 2
+    }
+
+    secret_mgr: "Secret Manager" {
+      style.fill: "#a5d6a7"
+    }
+
+    artifact_reg: "Artifact Registry" {
+      style.fill: "#a5d6a7"
+    }
+
+    gcs: "Cloud Storage\nBackups" {
+      style.fill: "#a5d6a7"
+    }
+  }
+
+  monitoring: "Monitoring" {
+    style: {
+      fill: "#fff9c4"
+      stroke: "#f9a825"
+      stroke-width: 2
+    }
+
+    grafana: "Grafana Cloud" {
+      style.fill: "#fff59d"
+    }
+
+    sentinel: "MS Sentinel\nSIEM" {
+      style.fill: "#fff59d"
+    }
+  }
+
+  identity: "Identity Provider" {
+    style: {
+      fill: "#e3f2fd"
+      stroke: "#1976d2"
+      stroke-width: 2
+    }
+
+    entra: "Microsoft\nEntra ID" {
+      style.fill: "#bbdefb"
+    }
+  }
+}
+
+# ============================================================================
+# TRUST BOUNDARIES (Connections with Firewall Rules)
+# ============================================================================
+
+# Zone 0 -> Zone 1 (Internet to DMZ)
+zone0.internet -> zone1.firewall: "HTTPS :443\nVPN :1194/UDP" {
+  style: {
+    stroke: "#c62828"
+    stroke-width: 3
+  }
+}
+
+zone0.threats -> zone1.firewall.ids_ips: "BLOCKED\nIDS/IPS" {
+  style: {
+    stroke: "#c62828"
+    stroke-width: 2
+    stroke-dash: 5
+  }
+}
+
+# Zone 1 -> Zone 2 (DMZ to Management)
+zone1.vpn_gateway -> zone2.admin_access: "Authenticated\nVPN Tunnel" {
+  style: {
+    stroke: "#3f51b5"
+    stroke-width: 2
+  }
+}
+
+# Zone 1 -> Zone 3 (DMZ to Cluster)
+zone1.waf -> zone3.ingress.traefik: "Filtered HTTPS\nWAF Inspected" {
+  style: {
+    stroke: "#1565c0"
+    stroke-width: 2
+  }
+}
+
+# Zone 2 -> Zone 3 (Management to Cluster)
+zone2.admin_access.kubectl -> zone3.control_plane.api: "mTLS :6443\nRBAC Enforced" {
+  style: {
+    stroke: "#0d47a1"
+    stroke-width: 2
+  }
+}
+
+zone2.oob.kvm -> zone3.control_plane: "Out-of-Band\nEmergency Only" {
+  style: {
+    stroke: "#512da8"
+    stroke-width: 1
+    stroke-dash: 5
+  }
+}
+
+# Zone 3 -> Zone 4 (Cluster to Workloads)
+zone3.ingress.traefik -> zone4.external_apps: "Ingress Rules\nPath-Based Routing" {
+  style: {
+    stroke: "#f9a825"
+    stroke-width: 2
+  }
+}
+
+zone3.network_security.netpol -> zone4: "NetworkPolicy\nEnforced" {
+  style: {
+    stroke: "#c62828"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
+
+# Zone 4 -> Zone 4 (Inter-App)
+zone4.external_apps -> zone4.ai_services: "gRPC\nInternal Only" {
+  style: {
+    stroke: "#388e3c"
+    stroke-width: 2
+  }
+}
+
+zone4.internal_apps -> zone4.ai_services: "gRPC\nLow Latency" {
+  style: {
+    stroke: "#388e3c"
+    stroke-width: 2
+  }
+}
+
+# Zone 4 -> Zone 5 (Workloads to Data)
+zone4.external_apps -> zone5.databases: "SQL :5432\nRedis :6379" {
+  style: {
+    stroke: "#c2185b"
+    stroke-width: 2
+  }
+}
+
+zone4.ai_services -> zone5.databases.qdrant: "Vector Queries\n:6333" {
+  style: {
+    stroke: "#c2185b"
+    stroke-width: 2
+  }
+}
+
+# Zone 3 -> Zone 5 (Cluster to Storage)
+zone3.workers -> zone5.storage.longhorn: "iSCSI/NFS\nEncrypted" {
+  style: {
+    stroke: "#7b1fa2"
+    stroke-width: 2
+  }
+}
+
+# Zone 3/5 -> Zone 6 (To External Cloud)
+zone5.secrets.eso -> zone6.gcp.secret_mgr: "Secrets Sync\nTLS" {
+  style: {
+    stroke: "#388e3c"
+    stroke-width: 2
+  }
+}
+
+zone5.storage -> zone6.gcp.gcs: "Backups\nEncrypted" {
+  style: {
+    stroke: "#388e3c"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
+
+zone3.network_security -> zone6.monitoring.sentinel: "Security Events\nFalco Alerts" {
+  style: {
+    stroke: "#f9a825"
+    stroke-width: 2
+  }
+}
+
+zone6.identity.entra -> zone1.vpn_gateway: "SAML Auth" {
+  style: {
+    stroke: "#1976d2"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
+
+zone6.identity.entra -> zone4.external_apps: "SAML SSO" {
+  style: {
+    stroke: "#1976d2"
+    stroke-width: 2
+    stroke-dash: 3
+  }
+}
