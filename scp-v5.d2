@@ -1,0 +1,778 @@
+# SCP On-Premises Kubernetes Infrastructure
+# System Architecture Overview v4
+# No Bastion - VPN Direct Access with 2FA
+# Compliance: SOC 2 | HIPAA | NIST 800-53 | HiTrust
+
+direction: down
+
+# ============================================================================
+# EXTERNAL ZONE
+# ============================================================================
+
+external: External Zone {
+  style: {
+    fill: "#ffebee"
+    stroke: "#c62828"
+    stroke-width: 3
+    border-radius: 10
+  }
+
+  internet: Internet {
+    shape: cloud
+    style.fill: "#ffcdd2"
+  }
+
+  employees: "Employees\n(SAML/Entra ID + YubiKey)" {
+    shape: person
+    style.fill: "#ffcdd2"
+  }
+
+  api_consumers: "API Consumers\n(IP Whitelisted)" {
+    shape: person
+    style.fill: "#ffcdd2"
+  }
+}
+
+# ============================================================================
+# ISP ZONE
+# ============================================================================
+
+isp: ISP Boundary {
+  style: {
+    fill: "#fff3e0"
+    stroke: "#e65100"
+    stroke-width: 2
+    border-radius: 8
+  }
+
+  att: "AT&T Fiber\n10/10 Gbps" {
+    style.fill: "#ffe0b2"
+  }
+
+  static_ips: "Static IP Pool\n8x Public IPv4" {
+    style.fill: "#ffcc80"
+  }
+}
+
+# ============================================================================
+# DMZ / PERIMETER
+# ============================================================================
+
+dmz: "DMZ / Perimeter Security" {
+  style: {
+    fill: "#fce4ec"
+    stroke: "#ad1457"
+    stroke-width: 3
+    border-radius: 10
+  }
+
+  udm: UniFi Dream Machine Pro {
+    style: {
+      fill: "#f8bbd0"
+      stroke: "#880e4f"
+      stroke-width: 2
+    }
+
+    firewall: "Stateful\nFirewall" {
+      style.fill: "#f48fb1"
+    }
+    
+    ids: "IDS/IPS" {
+      style.fill: "#f48fb1"
+    }
+    
+    dpi: "Deep Packet\nInspection" {
+      style.fill: "#f48fb1"
+    }
+    
+    geo_block: "Geo-IP\nBlocking" {
+      style.fill: "#f48fb1"
+    }
+  }
+
+  vpn: VPN Gateway {
+    style: {
+      fill: "#e1bee7"
+      stroke: "#6a1b9a"
+      stroke-width: 2
+    }
+
+    openvpn: "OpenVPN\nSAML + YubiKey 2FA" {
+      style.fill: "#ce93d8"
+    }
+
+    wireguard: "WireGuard\n(Site-to-Site)" {
+      style.fill: "#ce93d8"
+    }
+  }
+
+  waf: Web Application Firewall {
+    style: {
+      fill: "#b39ddb"
+      stroke: "#4527a0"
+    }
+    
+    modsec: "ModSecurity\nOWASP CRS" {
+      style.fill: "#9575cd"
+    }
+    
+    rate_limit: "Rate\nLimiting" {
+      style.fill: "#9575cd"
+    }
+    
+    ip_filter: "IP\nWhitelist" {
+      style.fill: "#9575cd"
+    }
+  }
+}
+
+# ============================================================================
+# MANAGEMENT VLAN
+# ============================================================================
+
+mgmt: "Management VLAN 10\n10.10.10.0/24" {
+  style: {
+    fill: "#e8eaf6"
+    stroke: "#283593"
+    stroke-width: 3
+    border-radius: 10
+  }
+
+  oob: Out-of-Band Management {
+    style: {
+      fill: "#d1c4e9"
+      stroke: "#512da8"
+    }
+
+    kvm1: "Raritan KVM #1" {
+      style.fill: "#b39ddb"
+    }
+    
+    kvm2: "Raritan KVM #2" {
+      style.fill: "#b39ddb"
+    }
+  }
+
+  vpn_access: "VPN Client Access\n(Direct to Cluster)" {
+    style: {
+      fill: "#c5cae9"
+      stroke: "#3949ab"
+    }
+
+    tools: "kubectl | Helm\nTerraform | Ansible" {
+      style.fill: "#7986cb"
+    }
+  }
+}
+
+# ============================================================================
+# CLUSTER VLAN - KUBERNETES
+# ============================================================================
+
+cluster: "Cluster VLAN 20\n10.10.20.0/24" {
+  style: {
+    fill: "#e3f2fd"
+    stroke: "#1565c0"
+    stroke-width: 3
+    border-radius: 10
+  }
+
+  switch: "UniFi 10G Switch\nLink Aggregation" {
+    style: {
+      fill: "#90caf9"
+      stroke: "#0d47a1"
+      stroke-width: 2
+    }
+  }
+
+  # CONTROL PLANE (HA)
+  control: "Control Plane (HA - 2 Nodes)" {
+    style: {
+      fill: "#bbdefb"
+      stroke: "#0d47a1"
+      stroke-width: 3
+    }
+
+    sol: "SOL - Master #1 (Primary)" {
+      style: {
+        fill: "#64b5f6"
+        stroke: "#0d47a1"
+        stroke-width: 2
+      }
+
+      sol_hw: "Ryzen 9 5950X\n128GB RAM\n4x 2TB NVMe" {
+        style.fill: "#42a5f5"
+      }
+
+      rke2_sol: RKE2 Control Plane {
+        style.fill: "#2196f3"
+
+        apiserver: "kube-apiserver\n(FIPS 140-2)" {
+          style.fill: "#1e88e5"
+        }
+        
+        etcd: "etcd\n(Encrypted)" {
+          style.fill: "#1e88e5"
+        }
+        
+        scheduler: kube-scheduler {
+          style.fill: "#1e88e5"
+        }
+        
+        controller: kube-controller-manager {
+          style.fill: "#1e88e5"
+        }
+      }
+
+      platform: Platform Services {
+        style.fill: "#4fc3f7"
+
+        rancher: Rancher {
+          style.fill: "#29b6f6"
+        }
+        
+        argocd: ArgoCD {
+          style.fill: "#29b6f6"
+        }
+        
+        cert_mgr: cert-manager {
+          style.fill: "#29b6f6"
+        }
+        
+        ext_secrets: "External Secrets\nOperator" {
+          style.fill: "#29b6f6"
+        }
+      }
+    }
+
+    jump: "JUMP - Master #2 (HA)" {
+      style: {
+        fill: "#64b5f6"
+        stroke: "#0d47a1"
+        stroke-width: 2
+      }
+
+      jump_hw: "Dell OptiPlex 7070\ni5-8500T | 32GB RAM" {
+        style.fill: "#42a5f5"
+      }
+
+      rke2_jump: RKE2 Control Plane {
+        style.fill: "#2196f3"
+
+        apiserver2: "kube-apiserver\n(FIPS 140-2)" {
+          style.fill: "#1e88e5"
+        }
+        
+        etcd2: "etcd\n(Encrypted)" {
+          style.fill: "#1e88e5"
+        }
+        
+        scheduler2: kube-scheduler {
+          style.fill: "#1e88e5"
+        }
+        
+        controller2: kube-controller-manager {
+          style.fill: "#1e88e5"
+        }
+      }
+    }
+
+    # etcd replication between masters
+    sol.rke2_sol.etcd -> jump.rke2_jump.etcd2: "etcd Sync" {
+      style.stroke: "#1565c0"
+      style.stroke-dash: 3
+    }
+  }
+
+  # GPU WORKERS
+  workers: "GPU Worker Nodes" {
+    style: {
+      fill: "#c8e6c9"
+      stroke: "#2e7d32"
+      stroke-width: 3
+    }
+
+    luna: "LUNA - Worker #1" {
+      style: {
+        fill: "#81c784"
+        stroke: "#1b5e20"
+        stroke-width: 2
+      }
+
+      luna_hw: "Threadripper PRO 5975WX\n256GB RAM | 1TB NVMe" {
+        style.fill: "#66bb6a"
+      }
+
+      luna_gpu: "3x NVIDIA A4500\n60GB VRAM Total\n2x NVLink" {
+        style.fill: "#4caf50"
+      }
+
+      luna_work: "vLLM: Llama 3B\nWhisper STT\nKokoro TTS" {
+        style.fill: "#a5d6a7"
+      }
+    }
+
+    pluto: "PLUTO - Worker #2" {
+      style: {
+        fill: "#81c784"
+        stroke: "#1b5e20"
+        stroke-width: 2
+      }
+
+      pluto_hw: "Threadripper PRO 5975WX\n256GB RAM | 1TB NVMe" {
+        style.fill: "#66bb6a"
+      }
+
+      pluto_gpu: "2x NVIDIA A4500\n40GB VRAM Total" {
+        style.fill: "#4caf50"
+      }
+
+      pluto_work: "vLLM: Embedding\nQdrant Vector DB" {
+        style.fill: "#a5d6a7"
+      }
+    }
+
+    future: "Future Expansion" {
+      style: {
+        fill: "#e8f5e9"
+        stroke-dash: 5
+      }
+
+      a30: "NVIDIA A30\n(MIG Support)" {
+        style.fill: "#c8e6c9"
+      }
+      
+      a10: "NVIDIA A10\n(MIG Support)" {
+        style.fill: "#c8e6c9"
+      }
+    }
+  }
+
+  # WORKLOADS
+  workloads: Application Workloads {
+    style: {
+      fill: "#fff9c4"
+      stroke: "#f9a825"
+      stroke-width: 2
+    }
+
+    ai: "AI/ML Services" {
+      style.fill: "#fff59d"
+
+      vllm: "vLLM Stack\nLLM | STT | TTS | Embed" {
+        style.fill: "#ffee58"
+      }
+
+      langfuse: Langfuse {
+        style.fill: "#ffee58"
+      }
+    }
+
+    voice: "Voice & Telephony" {
+      style.fill: "#ffe0b2"
+
+      livekit: "LiveKit\nLiveKit SIP" {
+        style.fill: "#ffcc80"
+      }
+
+      asterisk: "Asterisk\nPJSIP" {
+        style.fill: "#ffcc80"
+      }
+
+      voice_agent: "Voice Agent\nOrchestrator" {
+        style.fill: "#ffcc80"
+      }
+    }
+
+    apps: "Application Services" {
+      style.fill: "#e1bee7"
+
+      librechat: "LibreChat\n(External)" {
+        style.fill: "#ce93d8"
+      }
+      
+      n8n: "n8n\n(External)" {
+        style.fill: "#ce93d8"
+      }
+
+      python_api: "Python APIs" {
+        style.fill: "#ce93d8"
+      }
+    }
+
+    data: "Data Layer" {
+      style.fill: "#b2dfdb"
+
+      postgres: PostgreSQL {
+        style.fill: "#80cbc4"
+      }
+      
+      redis: Redis {
+        style.fill: "#80cbc4"
+      }
+      
+      qdrant: Qdrant {
+        style.fill: "#80cbc4"
+      }
+
+      mem0: Mem0 {
+        style.fill: "#80cbc4"
+      }
+    }
+  }
+
+  # K8S INFRASTRUCTURE
+  k8s: Kubernetes Infrastructure {
+    style: {
+      fill: "#e1f5fe"
+      stroke: "#0277bd"
+      stroke-width: 2
+    }
+
+    networking: Networking {
+      style.fill: "#b3e5fc"
+
+      cilium: "Cilium CNI\neBPF + WireGuard" {
+        style.fill: "#81d4fa"
+      }
+
+      traefik: "Traefik Ingress\nHTTPS + WAF" {
+        style.fill: "#4fc3f7"
+      }
+
+      netpol: "NetworkPolicies\nDefault Deny" {
+        style.fill: "#81d4fa"
+      }
+    }
+
+    storage: Persistent Storage {
+      style.fill: "#b3e5fc"
+
+      longhorn: "Longhorn\n3x Replication\nLUKS Encrypted" {
+        style.fill: "#81d4fa"
+      }
+
+      local_nvme: "Local NVMe\nModel Weights" {
+        style.fill: "#4fc3f7"
+      }
+    }
+
+    security: Security Components {
+      style.fill: "#ffcdd2"
+
+      falco: "Falco\nRuntime Security" {
+        style.fill: "#ef9a9a"
+      }
+      
+      trivy: "Trivy\nImage Scanning" {
+        style.fill: "#ef9a9a"
+      }
+      
+      pss: "Pod Security\nStandards" {
+        style.fill: "#ef9a9a"
+      }
+    }
+
+    gpu_stack: NVIDIA GPU Stack {
+      style.fill: "#c8e6c9"
+
+      gpu_op: GPU Operator {
+        style.fill: "#a5d6a7"
+      }
+      
+      dcgm: "DCGM Exporter\nGPU Metrics" {
+        style.fill: "#a5d6a7"
+      }
+    }
+  }
+}
+
+# ============================================================================
+# STORAGE VLAN
+# ============================================================================
+
+storage: "Storage VLAN 30\n10.10.30.0/24" {
+  style: {
+    fill: "#fce4ec"
+    stroke: "#c2185b"
+    stroke-width: 2
+    border-radius: 8
+  }
+
+  nas: "NAS Storage\n6x M.2 NVMe\nEncrypted" {
+    style.fill: "#f8bbd0"
+  }
+
+  velero: "Velero Backups\nLocal Target" {
+    style.fill: "#f48fb1"
+  }
+}
+
+# ============================================================================
+# GCP SERVICES
+# ============================================================================
+
+gcp: "GCP Cloud Services" {
+  style: {
+    fill: "#e8f5e9"
+    stroke: "#2e7d32"
+    stroke-width: 2
+    border-radius: 10
+  }
+
+  secrets: "Secret Manager\nCloud KMS" {
+    style.fill: "#a5d6a7"
+  }
+
+  registry: "Artifact Registry\nDocker + Helm" {
+    style.fill: "#a5d6a7"
+  }
+
+  gcs: "Cloud Storage\nOffsite Backups" {
+    style.fill: "#a5d6a7"
+  }
+
+  gke: "GKE (Future)\nCloud Burst" {
+    style: {
+      fill: "#c8e6c9"
+      stroke-dash: 5
+    }
+  }
+}
+
+# ============================================================================
+# MONITORING
+# ============================================================================
+
+monitoring: "Monitoring & Observability" {
+  style: {
+    fill: "#fff8e1"
+    stroke: "#ff8f00"
+    stroke-width: 2
+    border-radius: 10
+  }
+
+  grafana: "Grafana Cloud\nDashboards + Alerts" {
+    style.fill: "#ffecb3"
+  }
+
+  prom_stack: "Prometheus\nLoki | Tempo" {
+    style.fill: "#ffe082"
+  }
+
+  sentinel: "Microsoft Sentinel\nSIEM" {
+    style.fill: "#e3f2fd"
+  }
+}
+
+# ============================================================================
+# COMPLIANCE
+# ============================================================================
+
+compliance: "Compliance Framework" {
+  style: {
+    fill: "#fafafa"
+    stroke: "#616161"
+    stroke-width: 2
+    border-radius: 10
+  }
+
+  soc2: "SOC 2\nType II" {
+    style.fill: "#e0e0e0"
+  }
+  
+  hipaa: HIPAA {
+    style.fill: "#e0e0e0"
+  }
+  
+  nist: "NIST\n800-53" {
+    style.fill: "#e0e0e0"
+  }
+  
+  hitrust: "HiTrust i1\n(Target)" {
+    style: {
+      fill: "#e0e0e0"
+      stroke-dash: 3
+    }
+  }
+}
+
+# ============================================================================
+# CONNECTIONS
+# ============================================================================
+
+# External to ISP
+external.internet -> isp.att: "10 Gbps" {
+  style.stroke: "#e65100"
+  style.stroke-width: 2
+}
+
+# Users to DMZ
+external.employees -> dmz.vpn.openvpn: "VPN + 2FA" {
+  style.stroke: "#7b1fa2"
+  style.stroke-width: 2
+}
+
+external.api_consumers -> dmz.waf.modsec: "HTTPS" {
+  style.stroke: "#1565c0"
+  style.stroke-width: 2
+}
+
+# ISP to DMZ
+isp.static_ips -> dmz.udm: "Static IPs" {
+  style.stroke: "#e65100"
+}
+
+# DMZ Internal
+dmz.udm -> dmz.vpn
+dmz.udm -> dmz.waf
+dmz.waf -> dmz.udm.ids
+
+# VPN Direct to Cluster (No Bastion)
+dmz.vpn.openvpn -> mgmt.vpn_access: "Authenticated" {
+  style.stroke: "#283593"
+  style.stroke-width: 2
+}
+
+mgmt.vpn_access -> cluster.control.sol: "kubectl (mTLS)" {
+  style.stroke: "#1a237e"
+  style.stroke-width: 2
+}
+
+# WAF to Traefik
+dmz.waf -> cluster.k8s.networking.traefik: "Filtered HTTPS" {
+  style.stroke: "#0277bd"
+  style.stroke-width: 2
+}
+
+# KVM Access (Out-of-Band)
+mgmt.oob.kvm1 -> cluster.control.sol: "KVM Console" {
+  style.stroke: "#512da8"
+  style.stroke-dash: 3
+}
+
+mgmt.oob.kvm1 -> cluster.control.jump: "KVM Console" {
+  style.stroke: "#512da8"
+  style.stroke-dash: 3
+}
+
+mgmt.oob.kvm2 -> cluster.workers.luna: "KVM Console" {
+  style.stroke: "#512da8"
+  style.stroke-dash: 3
+}
+
+mgmt.oob.kvm2 -> cluster.workers.pluto: "KVM Console" {
+  style.stroke: "#512da8"
+  style.stroke-dash: 3
+}
+
+# Network Backbone
+cluster.switch -> cluster.control.sol: "10 Gbps" {
+  style.stroke: "#0d47a1"
+  style.stroke-width: 3
+}
+
+cluster.switch -> cluster.control.jump: "1 Gbps" {
+  style.stroke: "#0d47a1"
+  style.stroke-width: 2
+}
+
+cluster.switch -> cluster.workers.luna: "10 Gbps" {
+  style.stroke: "#0d47a1"
+  style.stroke-width: 3
+}
+
+cluster.switch -> cluster.workers.pluto: "10 Gbps" {
+  style.stroke: "#0d47a1"
+  style.stroke-width: 3
+}
+
+# Control to Workers (both masters communicate with workers)
+cluster.control.sol.rke2_sol.apiserver -> cluster.workers.luna: "kubelet (mTLS)" {
+  style.stroke: "#2e7d32"
+  style.stroke-width: 2
+}
+
+cluster.control.sol.rke2_sol.apiserver -> cluster.workers.pluto: "kubelet (mTLS)" {
+  style.stroke: "#2e7d32"
+  style.stroke-width: 2
+}
+
+cluster.control.jump.rke2_jump.apiserver2 -> cluster.workers.luna: "kubelet (mTLS)" {
+  style.stroke: "#2e7d32"
+  style.stroke-dash: 3
+}
+
+cluster.control.jump.rke2_jump.apiserver2 -> cluster.workers.pluto: "kubelet (mTLS)" {
+  style.stroke: "#2e7d32"
+  style.stroke-dash: 3
+}
+
+# Storage Connections
+cluster.k8s.storage.longhorn -> storage.nas: "Replication" {
+  style.stroke: "#c2185b"
+  style.stroke-width: 2
+}
+
+storage.velero -> gcp.gcs: "Encrypted Backup" {
+  style.stroke: "#2e7d32"
+  style.stroke-width: 2
+  style.stroke-dash: 3
+}
+
+# GCP Connections
+cluster.control.sol.platform.ext_secrets -> gcp.secrets: "Secrets Sync" {
+  style.stroke: "#2e7d32"
+}
+
+cluster.control.sol.platform.argocd -> gcp.registry: "Helm Charts" {
+  style.stroke: "#2e7d32"
+}
+
+cluster.k8s.security.trivy -> gcp.registry: "Image Scan" {
+  style.stroke: "#2e7d32"
+}
+
+# Monitoring
+cluster.k8s.gpu_stack.dcgm -> monitoring.prom_stack: "GPU Metrics" {
+  style.stroke: "#ff8f00"
+}
+
+monitoring.prom_stack -> monitoring.grafana: "Export" {
+  style.stroke: "#ffa000"
+  style.stroke-width: 2
+}
+
+cluster.k8s.security.falco -> monitoring.sentinel: "Security Events" {
+  style.stroke: "#1565c0"
+  style.stroke-width: 2
+}
+
+# Application Flow
+cluster.k8s.networking.traefik -> cluster.workloads.apps.librechat
+cluster.k8s.networking.traefik -> cluster.workloads.apps.n8n
+
+cluster.workloads.apps.librechat -> cluster.workloads.ai.vllm: "gRPC" {
+  style.stroke: "#8e24aa"
+}
+
+cluster.workloads.apps.n8n -> cluster.workloads.ai.vllm: "gRPC" {
+  style.stroke: "#8e24aa"
+}
+
+cluster.workloads.voice -> cluster.workloads.ai.vllm: "Ultra-Low Latency" {
+  style.stroke: "#fb8c00"
+  style.stroke-width: 2
+}
+
+cluster.workloads.ai -> cluster.workloads.data.qdrant: "Vectors" {
+  style.stroke: "#00897b"
+}
+
+cluster.workloads.apps -> cluster.workloads.data.postgres: "SQL" {
+  style.stroke: "#00897b"
+}
+
+cluster.workloads.apps -> cluster.workloads.data.redis: "Cache" {
+  style.stroke: "#00897b"
+}
