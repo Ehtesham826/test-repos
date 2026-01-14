@@ -185,15 +185,15 @@ cluster: "Cluster VLAN 20\n10.10.20.0/24" {
     }
   }
 
-  # CONTROL PLANE
-  control: "Control Plane (Dedicated)" {
+  # CONTROL PLANE (HA)
+  control: "Control Plane (HA - 2 Nodes)" {
     style: {
       fill: "#bbdefb"
       stroke: "#0d47a1"
       stroke-width: 3
     }
 
-    sol: SOL {
+    sol: "SOL - Master #1 (Primary)" {
       style: {
         fill: "#64b5f6"
         stroke: "#0d47a1"
@@ -204,7 +204,7 @@ cluster: "Cluster VLAN 20\n10.10.20.0/24" {
         style.fill: "#42a5f5"
       }
 
-      rke2: RKE2 Control Plane {
+      rke2_sol: RKE2 Control Plane {
         style.fill: "#2196f3"
 
         apiserver: "kube-apiserver\n(FIPS 140-2)" {
@@ -243,6 +243,44 @@ cluster: "Cluster VLAN 20\n10.10.20.0/24" {
           style.fill: "#29b6f6"
         }
       }
+    }
+
+    jump: "JUMP - Master #2 (HA)" {
+      style: {
+        fill: "#64b5f6"
+        stroke: "#0d47a1"
+        stroke-width: 2
+      }
+
+      jump_hw: "Dell OptiPlex 7070\ni5-8500T | 32GB RAM" {
+        style.fill: "#42a5f5"
+      }
+
+      rke2_jump: RKE2 Control Plane {
+        style.fill: "#2196f3"
+
+        apiserver2: "kube-apiserver\n(FIPS 140-2)" {
+          style.fill: "#1e88e5"
+        }
+        
+        etcd2: "etcd\n(Encrypted)" {
+          style.fill: "#1e88e5"
+        }
+        
+        scheduler2: kube-scheduler {
+          style.fill: "#1e88e5"
+        }
+        
+        controller2: kube-controller-manager {
+          style.fill: "#1e88e5"
+        }
+      }
+    }
+
+    # etcd replication between masters
+    sol.rke2_sol.etcd -> jump.rke2_jump.etcd2: "etcd Sync" {
+      style.stroke: "#1565c0"
+      style.stroke-dash: 3
     }
   }
 
@@ -613,6 +651,11 @@ mgmt.oob.kvm1 -> cluster.control.sol: "KVM Console" {
   style.stroke-dash: 3
 }
 
+mgmt.oob.kvm1 -> cluster.control.jump: "KVM Console" {
+  style.stroke: "#512da8"
+  style.stroke-dash: 3
+}
+
 mgmt.oob.kvm2 -> cluster.workers.luna: "KVM Console" {
   style.stroke: "#512da8"
   style.stroke-dash: 3
@@ -629,6 +672,11 @@ cluster.switch -> cluster.control.sol: "10 Gbps" {
   style.stroke-width: 3
 }
 
+cluster.switch -> cluster.control.jump: "1 Gbps" {
+  style.stroke: "#0d47a1"
+  style.stroke-width: 2
+}
+
 cluster.switch -> cluster.workers.luna: "10 Gbps" {
   style.stroke: "#0d47a1"
   style.stroke-width: 3
@@ -639,15 +687,25 @@ cluster.switch -> cluster.workers.pluto: "10 Gbps" {
   style.stroke-width: 3
 }
 
-# Control to Workers
-cluster.control.sol.rke2.apiserver -> cluster.workers.luna: "kubelet (mTLS)" {
+# Control to Workers (both masters communicate with workers)
+cluster.control.sol.rke2_sol.apiserver -> cluster.workers.luna: "kubelet (mTLS)" {
   style.stroke: "#2e7d32"
   style.stroke-width: 2
 }
 
-cluster.control.sol.rke2.apiserver -> cluster.workers.pluto: "kubelet (mTLS)" {
+cluster.control.sol.rke2_sol.apiserver -> cluster.workers.pluto: "kubelet (mTLS)" {
   style.stroke: "#2e7d32"
   style.stroke-width: 2
+}
+
+cluster.control.jump.rke2_jump.apiserver2 -> cluster.workers.luna: "kubelet (mTLS)" {
+  style.stroke: "#2e7d32"
+  style.stroke-dash: 3
+}
+
+cluster.control.jump.rke2_jump.apiserver2 -> cluster.workers.pluto: "kubelet (mTLS)" {
+  style.stroke: "#2e7d32"
+  style.stroke-dash: 3
 }
 
 # Storage Connections
