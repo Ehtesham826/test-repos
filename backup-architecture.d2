@@ -1,5 +1,4 @@
 # Backup Architecture Diagram
-# SCP Infrastructure
 
 title: {
   label: SCP Backup Architecture
@@ -20,7 +19,7 @@ cluster: {
   }
 
   sol: {
-    label: SOL\n(Master #1)
+    label: SOL (Master #1)
     shape: rectangle
     style: {
       fill: "#3498db"
@@ -29,7 +28,7 @@ cluster: {
   }
 
   terra: {
-    label: TERRA\n(Master #2)
+    label: TERRA (Master #2)
     shape: rectangle
     style: {
       fill: "#3498db"
@@ -38,7 +37,7 @@ cluster: {
   }
 
   luna: {
-    label: LUNA\n(GPU Worker)
+    label: LUNA (GPU Worker)
     shape: rectangle
     style: {
       fill: "#9b59b6"
@@ -47,7 +46,7 @@ cluster: {
   }
 
   pluto: {
-    label: PLUTO\n(GPU Worker)
+    label: PLUTO (GPU Worker)
     shape: rectangle
     style: {
       fill: "#9b59b6"
@@ -56,7 +55,7 @@ cluster: {
   }
 
   velero: {
-    label: Velero\n(Backup Controller)
+    label: Velero
     shape: hexagon
     style: {
       fill: "#27ae60"
@@ -65,7 +64,7 @@ cluster: {
   }
 
   longhorn: {
-    label: Longhorn\n(Storage)
+    label: Longhorn
     shape: hexagon
     style: {
       fill: "#e67e22"
@@ -74,7 +73,7 @@ cluster: {
   }
 
   etcd: {
-    label: etcd\n(Cluster State)
+    label: etcd
     shape: cylinder
     style: {
       fill: "#34495e"
@@ -83,7 +82,7 @@ cluster: {
   }
 
   databases: {
-    label: Databases\n(PostgreSQL, Redis, Qdrant)
+    label: Databases
     shape: cylinder
     style: {
       fill: "#8e44ad"
@@ -94,14 +93,14 @@ cluster: {
 
 # NAS Storage
 nas: {
-  label: NAS Storage\n10.10.30.50\n(Primary Backup Target)
+  label: NAS Storage (10.10.30.50)
   style: {
     fill: "#fff3cd"
     stroke: "#856404"
   }
 
   velero_backups: {
-    label: /velero-backups\nK8s Resources
+    label: /velero-backups
     shape: cylinder
     style: {
       fill: "#ffc107"
@@ -109,7 +108,7 @@ nas: {
   }
 
   longhorn_backups: {
-    label: /longhorn-backups\nPersistent Volumes
+    label: /longhorn-backups
     shape: cylinder
     style: {
       fill: "#ffc107"
@@ -117,7 +116,7 @@ nas: {
   }
 
   etcd_backups: {
-    label: /etcd-backups\nCluster State
+    label: /etcd-backups
     shape: cylinder
     style: {
       fill: "#ffc107"
@@ -125,44 +124,11 @@ nas: {
   }
 
   db_backups: {
-    label: /database-backups\nPostgreSQL, Redis
+    label: /database-backups
     shape: cylinder
     style: {
       fill: "#ffc107"
     }
-  }
-}
-
-# Backup Flows
-cluster.velero -> nas.velero_backups: {
-  label: Daily 2:00 AM\n30 day retention
-  style: {
-    stroke: "#27ae60"
-    stroke-width: 2
-  }
-}
-
-cluster.longhorn -> nas.longhorn_backups: {
-  label: Every 6 hours\n7 day retention
-  style: {
-    stroke: "#e67e22"
-    stroke-width: 2
-  }
-}
-
-cluster.etcd -> nas.etcd_backups: {
-  label: Every 12 hours\n7 day retention
-  style: {
-    stroke: "#34495e"
-    stroke-width: 2
-  }
-}
-
-cluster.databases -> nas.db_backups: {
-  label: Daily 1:00 AM\n30 day retention
-  style: {
-    stroke: "#8e44ad"
-    stroke-width: 2
   }
 }
 
@@ -174,15 +140,32 @@ retention: {
     stroke: "#6c757d"
   }
 
-  policy: {
-    label: |md
-      | Backup Type | Frequency | Retention |
-      |-------------|-----------|-----------|
-      | Full Cluster (Velero) | Daily 2:00 AM | 30 days |
-      | PV Snapshots (Longhorn) | Every 6 hours | 7 days |
-      | etcd Snapshots | Every 12 hours | 7 days |
-      | Database Dumps | Daily 1:00 AM | 30 days |
-    |
+  velero_ret: {
+    label: Velero: 30 days
+    shape: rectangle
+    style: {
+      fill: white
+    }
+  }
+
+  longhorn_ret: {
+    label: Longhorn: 7 days
+    shape: rectangle
+    style: {
+      fill: white
+    }
+  }
+
+  etcd_ret: {
+    label: etcd: 7 days
+    shape: rectangle
+    style: {
+      fill: white
+    }
+  }
+
+  db_ret: {
+    label: Database: 30 days
     shape: rectangle
     style: {
       fill: white
@@ -190,38 +173,37 @@ retention: {
   }
 }
 
-# Restore Flow Box
-restore: {
-  label: Restore Procedures
+# Backup Flows
+cluster.velero -> nas.velero_backups: Daily 2AM {
   style: {
-    fill: "#d4edda"
-    stroke: "#155724"
-  }
-
-  procedures: {
-    label: |md
-      **Full Cluster Restore**
-      velero restore create --from-backup <backup-name>
-
-      **Single Namespace Restore**
-      velero restore create --from-backup <backup> --include-namespaces <ns>
-
-      **Volume Restore**
-      Longhorn UI > Backup > Restore
-
-      **etcd Restore**
-      rke2 server --cluster-reset --cluster-reset-restore-path=<snapshot>
-
-      **Database Restore**
-      psql < backup.sql
-    |
-    shape: rectangle
-    style: {
-      fill: white
-    }
+    stroke: "#27ae60"
+    stroke-width: 2
   }
 }
 
-# Layout
-nas -> retention: {style.opacity: 0}
-retention -> restore: {style.opacity: 0}
+cluster.longhorn -> nas.longhorn_backups: Every 6 hours {
+  style: {
+    stroke: "#e67e22"
+    stroke-width: 2
+  }
+}
+
+cluster.etcd -> nas.etcd_backups: Every 12 hours {
+  style: {
+    stroke: "#34495e"
+    stroke-width: 2
+  }
+}
+
+cluster.databases -> nas.db_backups: Daily 1AM {
+  style: {
+    stroke: "#8e44ad"
+    stroke-width: 2
+  }
+}
+
+# Layout connections
+nas.velero_backups -> retention.velero_ret: {style.opacity: 0}
+nas.longhorn_backups -> retention.longhorn_ret: {style.opacity: 0}
+nas.etcd_backups -> retention.etcd_ret: {style.opacity: 0}
+nas.db_backups -> retention.db_ret: {style.opacity: 0}
